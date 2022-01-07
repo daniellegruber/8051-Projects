@@ -1,0 +1,54 @@
+MAIN                                                                                                          PAGE 1
+
+                       1    $MOD51  ; This includes 8051 definitions for the Metalink assembler
+                       2    
+  0090                 3    LED_R   BIT             P1.0    ; Set red LED as bit 0 of port 1
+  0097                 4    LED_B   BIT             P1.7    ; Set blue LED as bit 7 of port 1
+  00B5                 5    LED_G   BIT             P3.5    ; Set green LED as bit 5 of port 3
+                       6    
+0000                   7    ORG             0H                              ; Program counter starts at address 0H
+                       8    
+0000 C290              9    CLR             LED_R                   ; Make sure all LEDs are initially turned off
+0002 C297             10    CLR             LED_B
+0004 C2B5             11    CLR     LED_G
+                      12    
+0006                  13    MAIN:                                   ; Define MAIN process
+0006 D290             14            SETB    LED_R           ; Set LED high (turn on)
+0008 111A             15            ACALL   DELAY           ; Call DELAY subroutine
+000A C290             16            CLR             LED_R           ; Set LED low (turn off)
+                      17    
+000C D297             18            SETB    LED_B
+000E 111A             19            ACALL   DELAY
+0010 C297             20            CLR             LED_B
+                      21    
+0012 D2B5             22            SETB    LED_G
+0014 111A             23            ACALL   DELAY
+0016 C2B5             24            CLR             LED_G
+                      25    
+0018 80EC             26            SJMP    MAIN            ; Repeat MAIN process
+                      27    
+001A                  28    DELAY:                                          ; Define DELAY subroutine
+001A 7C06             29            MOV             R4,             #6              ; Load R4 with #6
+                      30    
+001C                  31    DL1:                                            ; Define DL1 process
+001C 7BFF             32            MOV             R3,             #255    ; Load R3 with #255
+001E DBFE             33            DJNZ    R3,             $               ; Decrement R3 until 0
+                      34            
+0020 DCFA             35            DJNZ    R4,     DL1             ; Decrement R4 until 0, while not 0 repeat DL1
+                      36    
+0022 22               37    RET                                                     ; Return to location of call in prog
+                                                                               ram
+                      38    
+                      39    END                                                     ; End program
+
+VERSION 1.2k ASSEMBLY COMPLETE, 0 ERRORS FOUND
+MAIN                                                                                                          PAGE 2
+
+DELAY. . . . . . . . . . . . . .  C ADDR  001AH  
+DL1. . . . . . . . . . . . . . .  C ADDR  001CH  
+LED_B. . . . . . . . . . . . . .  B ADDR  0097H  
+LED_G. . . . . . . . . . . . . .  B ADDR  00B5H  
+LED_R. . . . . . . . . . . . . .  B ADDR  0090H  
+MAIN . . . . . . . . . . . . . .  C ADDR  0006H  
+P1 . . . . . . . . . . . . . . .  D ADDR  0090H  PREDEFINED  
+P3 . . . . . . . . . . . . . . .  D ADDR  00B0H  PREDEFINED  

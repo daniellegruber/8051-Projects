@@ -1,0 +1,191 @@
+MAIN                                                                                                          PAGE 1
+
+                       1    $MOD51  ; This includes 8051 definitions for the Metalink assembler
+                       2    ; Adapted from https://www.circuitstoday.com/interfacing-hex-keypad-to-8051
+                       3    
+                       4    ; Define keypad rows and columns
+  0090                 5    KEY_PORT        EQU             P1
+  0093                 6    COL1            EQU             P1.3
+  0092                 7    COL2            EQU             P1.2
+  0091                 8    COL3            EQU             P1.1
+  0090                 9    COL4            EQU             P1.0
+  0097                10    ROW1            EQU             P1.7
+  0096                11    ROW2            EQU             P1.6
+  0095                12    ROW3            EQU             P1.5
+  0094                13    ROW4            EQU             P1.4
+                      14            
+                      15    ; Define LCD pins
+  0080                16    RS                      EQU     P0.0    ; Register select: selects command register when low
+                                                                               , data register when high
+  0081                17    RW                      EQU             P0.1    ; Read/write: low to write to the register, 
+                                                                               high to read from the register
+  0082                18    EN                      EQU     P0.2    ; Enable: sends data to data pins when a high to low
+                                                                                pulse is given
+  00A0                19    OUT_PORT        EQU     P2              ; Define output port
+                      20            
+0000                  21    ORG     00H
+                      22            
+                      23    ; Initialize LCD
+0000 74FF             24    MOV     A,                      #0FFH   ; Loads A with all 1's
+0002 75A000           25    MOV     OUT_PORT,       #0H             ; Initializes P2 as output port
+                      26    
+0005 E501             27    MOV             A,      01H             ; Clear display
+0007 119B             28    ACALL   WRT_CMND        
+0009 E538             29    MOV             A,      38H             ; 8-bit, 2 line, 5x7 dots
+000B 119B             30    ACALL   WRT_CMND
+000D E50E             31    MOV             A,      0EH             ; Display ON cursor, ON
+000F 119B             32    ACALL   WRT_CMND
+0011 E506             33    MOV             A,      06H             ; Auto increment mode, i.e., when we send char, curs
+                                                                               or position moves right
+0013 119B             34    ACALL   WRT_CMND
+0015 11B5             35    ACALL   DELAY                           
+                      36    
+                      37    ; Keypad program
+0017 7590FF           38    BACK:   MOV     KEY_PORT,       #0FFH   ; Load P1 with all 1s
+001A C297             39                    CLR             ROW1                            ; Make ROW1 low
+001C 209304           40                    JB              COL1,           NEXT1   ; Check whether COL1 is low and jump
+                                                                                to NEXT1 if not low
+001F 7431             41                    MOV             A,                      #'1'    ; Load A with '1' if column 
+                                                                               is low (that means key 1 is pressed)
+0021 11A8             42                    ACALL   WRT_DATA                        ; Call WRT_DATA subroutine
+                      43    
+0023 209204           44    NEXT1:  JB              COL2,           NEXT2   ; Check whether COL2 is low and so on...
+0026 7432             45                    MOV             A,                      #'2'
+0028 11A8             46                    ACALL   WRT_DATA
+                      47                    
+002A 209104           48    NEXT2:  JB              COL3,           NEXT3           
+002D 7433             49                    MOV             A,                      #'3'
+002F 11A8             50                    ACALL   WRT_DATA
+                      51                    
+0031 209004           52    NEXT3:  JB              COL4,           NEXT4           
+MAIN                                                                                                          PAGE 2
+
+0034 7441             53                    MOV             A,                      #'A'
+0036 11A8             54                    ACALL   WRT_DATA
+                      55                    
+0038 D297             56    NEXT4:  SETB    ROW1
+003A C296             57                    CLR     ROW2
+003C 209304           58                    JB              COL1,           NEXT5
+003F 7434             59                    MOV     A,                      #'4'
+0041 11A8             60                    ACALL   WRT_DATA
+                      61    
+0043 209204           62    NEXT5:  JB              COL2,           NEXT6           
+0046 7435             63                    MOV             A,                      #'5'
+0048 11A8             64                    ACALL   WRT_DATA
+                      65    
+004A 209104           66    NEXT6:  JB              COL3,           NEXT7           
+004D 7436             67                    MOV             A,                      #'6'
+004F 11A8             68                    ACALL   WRT_DATA
+                      69                    
+0051 209004           70    NEXT7:  JB              COL4,           NEXT8           
+0054 7442             71                    MOV             A,                      #'B'
+0056 11A8             72                    ACALL   WRT_DATA
+                      73                    
+0058 D296             74    NEXT8:  SETB    ROW2
+005A C295             75                    CLR     ROW3
+005C 209304           76                    JB              COL1,           NEXT9
+005F 7437             77                    MOV     A,                      #'7'
+0061 11A8             78                    ACALL   WRT_DATA
+                      79                    
+0063 209204           80    NEXT9:  JB              COL2,           NEXT10
+0066 7438             81                    MOV     A,                      #'8'
+0068 11A8             82                    ACALL   WRT_DATA
+                      83                    
+006A 209104           84    NEXT10: JB              COL3,           NEXT11
+006D 7439             85                    MOV     A,                      #'9'
+006F 11A8             86                    ACALL   WRT_DATA
+                      87                    
+0071 209004           88    NEXT11: JB              COL4,           NEXT12
+0074 7443             89                    MOV     A,                      #'C'
+0076 11A8             90                    ACALL   WRT_DATA
+                      91                    
+0078 D295             92    NEXT12: SETB    ROW3
+007A C294             93                    CLR     ROW4
+007C 209304           94                    JB              COL1,           NEXT13
+007F 742A             95                    MOV     A,                      #'*'
+0081 11A8             96                    ACALL   WRT_DATA
+                      97                    
+0083 209204           98    NEXT13: JB              COL2,           NEXT14
+0086 7430             99                    MOV     A,                      #'0'
+0088 11A8            100                    ACALL   WRT_DATA
+                     101    
+008A 209104          102    NEXT14: JB              COL3,           NEXT15
+008D 7423            103                    MOV     A,                      #'#'
+008F 11A8            104                    ACALL   WRT_DATA
+                     105    
+0091 209083          106    NEXT15: JB              COL4,           BACK
+0094 7444            107                    MOV     A,                      #'D'
+0096 11A8            108                    ACALL   WRT_DATA
+0098 020017          109                    LJMP BACK
+                     110    
+MAIN                                                                                                          PAGE 3
+
+                     111    
+                     112    ; WRT_CMND subroutine: send command to LCD              
+009B F5A0            113    WRT_CMND:       MOV     OUT_PORT,       A       ; Load OUT_PORT with contents of A
+009D C280            114                            CLR     RS                              ; RS = 0 for command
+009F C281            115                            CLR     RW                              ; RW = 0 for write
+00A1 D282            116                            SETB    EN                              ; EN = 1 for high pulse
+00A3 11B5            117                            ACALL   DELAY                   ; Call DELAY subroutine
+00A5 C282            118                            CLR     EN                              ; EN = 0 for low pulse
+00A7 22              119                            RET
+                     120    
+                     121    ; WRT_DATA subroutine: send data to LCD and display
+00A8 F5A0            122    WRT_DATA:       MOV     OUT_PORT,       A       ; Load OUT_PORT with contents of A
+00AA D280            123                            SETB    RS                              ; RS = 1 for data
+00AC C281            124                            CLR     RW                              ; RW = 0 for write
+00AE D282            125                            SETB    EN                              ; EN = 1 for high pulse
+00B0 11B5            126                            ACALL   DELAY                   ; Call DELAY subroutine
+00B2 C282            127                            CLR     EN                              ; EN = 0 for low pulse
+00B4 22              128                            RET
+                     129                    
+                     130    ; DELAY subroutine
+00B5 7BFF            131    DELAY:          MOV     R3,     #255    ; Load R3 with 255
+00B7 7C02            132    L2:             MOV     R4,             #2              ; Load R4 with 2
+00B9 DCFE            133    L1:             DJNZ    R4,     L1              ; Decrement R4, if not zero repeat L1
+00BB DBFA            134                            DJNZ    R3,     L2              ; Decrement R3, if not zero repeat L
+                                                                               1
+00BD 22              135                            RET
+                     136    
+                     137    END
+
+VERSION 1.2k ASSEMBLY COMPLETE, 0 ERRORS FOUND
+MAIN                                                                                                          PAGE 4
+
+BACK . . . . . . . . . . . . . .  C ADDR  0017H  
+COL1 . . . . . . . . . . . . . .    NUMB  0093H  
+COL2 . . . . . . . . . . . . . .    NUMB  0092H  
+COL3 . . . . . . . . . . . . . .    NUMB  0091H  
+COL4 . . . . . . . . . . . . . .    NUMB  0090H  
+DELAY. . . . . . . . . . . . . .  C ADDR  00B5H  
+EN . . . . . . . . . . . . . . .    NUMB  0082H  
+KEY_PORT . . . . . . . . . . . .    NUMB  0090H  
+L1 . . . . . . . . . . . . . . .  C ADDR  00B9H  
+L2 . . . . . . . . . . . . . . .  C ADDR  00B7H  
+NEXT1. . . . . . . . . . . . . .  C ADDR  0023H  
+NEXT10 . . . . . . . . . . . . .  C ADDR  006AH  
+NEXT11 . . . . . . . . . . . . .  C ADDR  0071H  
+NEXT12 . . . . . . . . . . . . .  C ADDR  0078H  
+NEXT13 . . . . . . . . . . . . .  C ADDR  0083H  
+NEXT14 . . . . . . . . . . . . .  C ADDR  008AH  
+NEXT15 . . . . . . . . . . . . .  C ADDR  0091H  
+NEXT2. . . . . . . . . . . . . .  C ADDR  002AH  
+NEXT3. . . . . . . . . . . . . .  C ADDR  0031H  
+NEXT4. . . . . . . . . . . . . .  C ADDR  0038H  
+NEXT5. . . . . . . . . . . . . .  C ADDR  0043H  
+NEXT6. . . . . . . . . . . . . .  C ADDR  004AH  
+NEXT7. . . . . . . . . . . . . .  C ADDR  0051H  
+NEXT8. . . . . . . . . . . . . .  C ADDR  0058H  
+NEXT9. . . . . . . . . . . . . .  C ADDR  0063H  
+OUT_PORT . . . . . . . . . . . .    NUMB  00A0H  
+P0 . . . . . . . . . . . . . . .  D ADDR  0080H  PREDEFINED  
+P1 . . . . . . . . . . . . . . .  D ADDR  0090H  PREDEFINED  
+P2 . . . . . . . . . . . . . . .  D ADDR  00A0H  PREDEFINED  
+ROW1 . . . . . . . . . . . . . .    NUMB  0097H  
+ROW2 . . . . . . . . . . . . . .    NUMB  0096H  
+ROW3 . . . . . . . . . . . . . .    NUMB  0095H  
+ROW4 . . . . . . . . . . . . . .    NUMB  0094H  
+RS . . . . . . . . . . . . . . .    NUMB  0080H  
+RW . . . . . . . . . . . . . . .    NUMB  0081H  
+WRT_CMND . . . . . . . . . . . .  C ADDR  009BH  
+WRT_DATA . . . . . . . . . . . .  C ADDR  00A8H  

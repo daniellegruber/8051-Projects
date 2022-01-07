@@ -1,0 +1,143 @@
+MAIN                                                                                                          PAGE 1
+
+                       1    $MOD51                                          ; This includes 8051 definitions for the Met
+                                                                               alink assembler
+                       2    
+  0080                 3    RS                      EQU     P0.0    ; Register select: selects command register when low
+                                                                               , data register when high
+  0081                 4    RW                      EQU             P0.1    ; Read/write: low to write to the register, 
+                                                                               high to read from the register
+  0082                 5    EN                      EQU     P0.2    ; Enable: sends data to data pins when a high to low
+                                                                                pulse is given
+  00A7                 6    D7                      EQU             P2.7    ; D7: busy flag of LCD, when high means LCD 
+                                                                               busy and no info should be issued
+  00A0                 7    DATA_PORT       EQU     P2              ; Define input port
+                       8    
+                       9    
+0000                  10    ORG             0H
+0000 900050           11    MAIN:           MOV             DPTR,   #INIT_CMND      ; Load DPTR with LCD initialization 
+                                                                               command
+0003 1129             12                            ACALL   WRT_CMND                        ; Send command to LCD
+0005 1147             13                            ACALL   DELAY                           ; Call DELAY subroutine
+                      14            
+0007 900061           15    SEND_DATA1:     MOV             DPTR,   #LINE1          ; Load DPTR with command to begin cu
+                                                                               rsor at line 1
+000A 1129             16                            ACALL   WRT_CMND                        ; Send command to LCD
+000C 900055           17                            MOV             DPTR,   #MY_DATA1       ; Load DPTR with data for li
+                                                                               ne 1
+000F 111D             18                            ACALL   D1                                      ; Call D1 subroutine
+                                                                               
+                      19                            ;SJMP   SEND_DATA2
+                      20                            
+0011 900063           21    SEND_DATA2:     MOV             DPTR,   #LINE2          ; Load DPTR with command to begin cu
+                                                                               rsor at line 2
+0014 1129             22                            ACALL   WRT_CMND                        ; Send command to LCD
+0016 90005B           23                            MOV             DPTR,   #MY_DATA2       ; Load DPTR with data for li
+                                                                               ne 2
+0019 111D             24                            ACALL   D1                                      ; Call D1 subroutine
+                                                                               
+001B 80E3             25                            SJMP    MAIN                            ; Jump back to beginning of 
+                                                                               program
+                      26                            
+                      27    ; D1 subroutine:
+001D 751005           28    D1:                     MOV             10H, #5                         ; Load register 10H 
+                                                                               with 5
+0020 1138             29    D2:                     ACALL   WRT_DATA                        ; Send data to LCD and displ
+                                                                               ay
+0022 1147             30                            ACALL   DELAY                           ; Call DELAY subroutine
+0024 A3               31                            INC             DPTR                            ; Increment DPTR to 
+                                                                               get address of next byte of data (charact
+                                                                               er)
+0025 D510F8           32                            DJNZ    10H, D2                         ; Loop through D1 5 times be
+                                                                               cause there are 5 char in 'HELLO' and 'WO
+                                                                               RLD'
+0028 22               33                            RET
+                      34            
+                      35    
+                      36    
+                      37    ; WRT_CMND subroutine: send command to LCD              
+0029 E4               38    WRT_CMND:       CLR     A                               ; Reset A at 0
+002A 93               39                            MOVC    A,      @A+DPTR         ; Address of the desired byte in cod
+MAIN                                                                                                          PAGE 2
+
+                                                                               e space is formed by adding A + DPTR
+002B F5A0             40                            MOV     DATA_PORT,      A       ; Load DATA_PORT with contents of A
+                                                                               
+002D C280             41                            CLR     RS                              ; RS = 0 for command
+002F C281             42                            CLR     RW                              ; RW = 0 for write
+0031 D282             43                            SETB    EN                              ; EN = 1 for high pulse
+0033 1147             44                            ACALL   DELAY                   ; Call DELAY subroutine
+0035 C282             45                            CLR     EN                              ; EN = 0 for low pulse
+0037 22               46                            RET
+                      47    
+                      48    ; WRT_DATA subroutine: send data to LCD and display
+0038 E4               49    WRT_DATA:       CLR     A                               ; Reset A at 0
+0039 93               50                            MOVC    A,      @A+DPTR         ; Address of the desired byte in cod
+                                                                               e space is formed by adding A + DPTR
+003A F5A0             51                            MOV     DATA_PORT,      A       ; Load DATA_PORT with contents of A
+                                                                               
+003C D280             52                            SETB    RS                              ; RS = 1 for data
+003E C281             53                            CLR     RW                              ; RW = 0 for write
+0040 D282             54                            SETB    EN                              ; EN = 1 for high pulse
+0042 1147             55                            ACALL   DELAY                   ; Call DELAY subroutine
+0044 C282             56                            CLR     EN                              ; EN = 0 for low pulse
+0046 22               57                            RET
+                      58                    
+                      59    ; DELAY subroutine
+0047 7BFF             60    DELAY:          MOV     R3,     #255    ; Load R3 with 255
+0049 7C02             61    L2:             MOV     R4,             #2              ; Load R4 with 2
+004B DCFE             62    L1:             DJNZ    R4,     L1              ; Decrement R4, if not zero repeat L1
+004D DBFA             63                            DJNZ    R3,     L2              ; Decrement R3, if not zero repeat L
+                                                                               1
+004F 22               64                            RET
+                      65                            
+                      66    ; Define commands to initialize LCD display
+                      67    ; 01H: Clear display
+                      68    ; 38H: 8-bit, 2 line, 5x7 dots
+                      69    ; 0EH: Display ON cursor, ON
+                      70    ; 06H: Auto increment mode, i.e., when we send char, cursor position moves right
+0050 01380E06         71    INIT_CMND:      DB              01H,    38H,    0EH     ,       06H,    0
+0054 00         
+                      72            
+                      73    ; Define data to display on lines 1 and 2 of LCD
+0055 48454C4C         74    MY_DATA1:       DB              'HELLO',        0
+0059 4F00       
+005B 574F524C         75    MY_DATA2:       DB              'WORLD',        0
+005F 4400       
+                      76            
+                      77    ; Define command to go to line 1 of display
+                      78    ; 80H:  Bring cursor to line 1
+0061 8000             79    LINE1:                  DB              80H,    0
+                      80            
+                      81    ; Define command to go to line 2 of display
+                      82    ; 0C0H: Bring cursor to line 2
+0063 C000             83    LINE2:                  DB              0C0H,   0 
+                      84    
+                      85    
+                      86    END
+
+VERSION 1.2k ASSEMBLY COMPLETE, 0 ERRORS FOUND
+MAIN                                                                                                          PAGE 3
+
+D1 . . . . . . . . . . . . . . .  C ADDR  001DH  
+D2 . . . . . . . . . . . . . . .  C ADDR  0020H  
+D7 . . . . . . . . . . . . . . .    NUMB  00A7H  NOT USED  
+DATA_PORT. . . . . . . . . . . .    NUMB  00A0H  
+DELAY. . . . . . . . . . . . . .  C ADDR  0047H  
+EN . . . . . . . . . . . . . . .    NUMB  0082H  
+INIT_CMND. . . . . . . . . . . .  C ADDR  0050H  
+L1 . . . . . . . . . . . . . . .  C ADDR  004BH  
+L2 . . . . . . . . . . . . . . .  C ADDR  0049H  
+LINE1. . . . . . . . . . . . . .  C ADDR  0061H  
+LINE2. . . . . . . . . . . . . .  C ADDR  0063H  
+MAIN . . . . . . . . . . . . . .  C ADDR  0000H  
+MY_DATA1 . . . . . . . . . . . .  C ADDR  0055H  
+MY_DATA2 . . . . . . . . . . . .  C ADDR  005BH  
+P0 . . . . . . . . . . . . . . .  D ADDR  0080H  PREDEFINED  
+P2 . . . . . . . . . . . . . . .  D ADDR  00A0H  PREDEFINED  
+RS . . . . . . . . . . . . . . .    NUMB  0080H  
+RW . . . . . . . . . . . . . . .    NUMB  0081H  
+SEND_DATA1 . . . . . . . . . . .  C ADDR  0007H  NOT USED  
+SEND_DATA2 . . . . . . . . . . .  C ADDR  0011H  NOT USED  
+WRT_CMND . . . . . . . . . . . .  C ADDR  0029H  
+WRT_DATA . . . . . . . . . . . .  C ADDR  0038H  

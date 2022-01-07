@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ASCII"?>
+<MCUProject Schema="67" Class="CMCUProject" Path="" PathAbs="" ProjectType="0">
+<ProjectFolders/>
+<ProjectFiles>
+<FileItem>
+<MCUFile Class="CMCUFile" Path="&amp;ASCmain.asm" PathAbs="&amp;ASCC:\Users\danie\Documents\National Instruments\Circuit Design Suite 14.2\MCU Workspaces\Keypad\Keypad\Keypad\Keypad\main.asm" UseFileOptions="0" FileOptions=""/>
+</FileItem>
+</ProjectFiles>
+<BuildSettings>
+<MCUProjectBuildSettings Class="CMCUProjectBuildSettings" ToolGroupType="0" IntermediatePath="&amp;ASC..\..\" IntermediatePathAbs="&amp;ASCC:\Users\danie\Documents\National Instruments\Circuit Design Suite 14.2\MCU Workspaces\Keypad\Keypad\" OutputPath="&amp;ASC..\..\" OutputPathAbs="&amp;ASCC:\Users\danie\Documents\National Instruments\Circuit Design Suite 14.2\MCU Workspaces\Keypad\Keypad\" TargetFileType="6" SimPath="&amp;ASC.\" SimPathAbs="&amp;ASCC:\Users\danie\Documents\National Instruments\Circuit Design Suite 14.2\MCU Workspaces\Keypad\Keypad\Keypad\Keypad\" SimFile="&amp;ASCmain.hex" CodeLoadType="0">
+<Assembler>
+<MCUToolSettings Class="CMCUToolSettings" ToolType="0" IntermediatePath="&amp;ASC..\..\" IntermediatePathAbs="&amp;ASCC:\Users\danie\Documents\National Instruments\Circuit Design Suite 14.2\MCU Workspaces\Keypad\Keypad\" OutputPath="&amp;ASC..\..\" OutputPathAbs="&amp;ASCC:\Users\danie\Documents\National Instruments\Circuit Design Suite 14.2\MCU Workspaces\Keypad\Keypad\" TargetType="6" IncludeOptions="&amp;ASC$MOD51" PreFilenameOptions="" PostFilenameOptions="">
+<MCULibraries/>
+</MCUToolSettings>
+</Assembler>
+</MCUProjectBuildSettings>
+</BuildSettings>
+</MCUProject>
