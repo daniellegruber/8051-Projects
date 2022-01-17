@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="ASCII"?>
-<MCUProject Schema="67" Class="CMCUProject" Path="" PathAbs="" ProjectType="1">
-<ProjectFolders/>
-<ProjectFiles/>
-<BuildSettings>
-<MCUProjectBuildSettings Class="CMCUProjectBuildSettings" ToolGroupType="-1" IntermediatePath="&amp;ASC..\LCD\" IntermediatePathAbs="&amp;ASCC:\Users\danie\Documents\National Instruments\Circuit Design Suite 14.2\MCU Workspaces\LCD\LCD\" OutputPath="&amp;ASC..\LCD\" OutputPathAbs="&amp;ASCC:\Users\danie\Documents\National Instruments\Circuit Design Suite 14.2\MCU Workspaces\LCD\LCD\" TargetFileType="6" SimPath="&amp;ASCObjects\" SimPathAbs="&amp;ASCC:\Users\danie\Documents\National Instruments\Circuit Design Suite 14.2\MCU Workspaces\LCD\LCD Code\Objects\" SimFile="&amp;ASCLCD.hex" CodeLoadType="0"/>
-</BuildSettings>
-</MCUProject>
