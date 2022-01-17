@@ -1,0 +1,180 @@
+MAIN                                                                                                          PAGE 1
+
+                       1    $MOD51                                          ; This includes 8051 definitions for the Met
+                                                                               alink assembler
+                       2    
+  0080                 3    RS                      EQU     P0.0    ; Register select: selects command register when low
+                                                                               , data register when high
+  0081                 4    RW                      EQU             P0.1    ; Read/write: low to write to the register, 
+                                                                               high to read from the register
+  0082                 5    EN                      EQU     P0.2    ; Enable: sends data to data pins when a high to low
+                                                                                pulse is given
+  00A0                 6    DATA_PORT       EQU     P2              ; Define input port
+                       7    
+                       8    NBYTES          EQU     R0      ; Use R0 for defining # bytes in data and commands
+                       9    BYTE_IDX        EQU     R1      ; Use R1 for tracking byte idx when looping through bytes
+                      10    
+                      11    
+0000                  12    ORG     0H
+                      13    
+                      14    ; Initialize LCD
+0000                  15    INIT:
+0000 900060           16                            MOV             DPTR,   #INIT_CMND      ; Load DPTR with LCD initial
+                                                                               ization command
+0003 7803             17                            MOV             NBYTES, #3                      ; INIT_CMND has 3 co
+                                                                               mmands = 3 bytes
+0005 1130             18                            ACALL   SEND_CMND_BYTES         ; Call SEND_CMND_BYTES subroutine
+                      19    
+                      20    ; Main program
+0007                  21    MAIN:           
+0007                  22    SEND_DATA1:     
+0007 90006D           23                            MOV             DPTR,   #LINE1          ; Load DPTR with command to 
+                                                                               begin cursor at line 1
+000A 7802             24                            MOV             NBYTES, #2                      ; LINE1 has 2 comman
+                                                                               ds = 2 bytes
+000C 1130             25                            ACALL   SEND_CMND_BYTES         ; Call SEND_CMND_BYTES subroutine
+000E 900063           26                            MOV             DPTR,   #DATA1          ; Load DPTR with data for li
+                                                                               ne 1
+0011 7805             27                            MOV             NBYTES, #5                      ; DATA1 has 5 char =
+                                                                                5 bytes
+0013 1125             28                            ACALL   SEND_DATA_BYTES         ; Call SEND_DATA_BYTES subroutine
+                      29                            
+0015                  30    SEND_DATA2:             
+0015 90006F           31                            MOV             DPTR,   #LINE2          ; Load DPTR with command to 
+                                                                               begin cursor at line 1
+0018 7801             32                            MOV             NBYTES, #1                      ; LINE2 has 1 comman
+                                                                               d = 1 byte
+001A 1130             33                            ACALL   SEND_CMND_BYTES         ; Call SEND_CMND_BYTES subroutine
+001C 900068           34                            MOV             DPTR,   #DATA2  ; Load DPTR with data for line 1
+001F 7805             35                            MOV             NBYTES, #5                      ; DATA2 has 5 char =
+                                                                                5 byte
+0021 1125             36                            ACALL   SEND_DATA_BYTES         ; Call SEND_DATA_BYTES subroutine
+                      37                            
+0023 80E2             38                            SJMP    MAIN                            ; Jump back to MAIN (repeat 
+                                                                               main program)
+                      39    
+                      40    ; SEND_DATA_BYTES subroutine: write one byte of data to the LCD at a time 
+0025                  41    SEND_DATA_BYTES:
+0025 7900             42                            MOV             BYTE_IDX,       #0                      ; Initialize
+                                                                                byte idx at 0
+0027                  43    SEND_DATA_BYTE:
+MAIN                                                                                                          PAGE 2
+
+0027 E9               44                            MOV             A,      BYTE_IDX                        ; Load A wit
+                                                                               h the value of BYTE_IDX
+0028 1149             45                            ACALL   WRT_DATA                                ; Send data to LCD
+002A 1157             46                            ACALL   DELAY                                   ; Call DELAY subrout
+                                                                               ine
+002C 09               47                            INC             BYTE_IDX                                ; Increment 
+                                                                               byte idx
+002D D8F8             48                            DJNZ    NBYTES, SEND_DATA_BYTE  ; Repeat for each byte of data (loop
+                                                                                until NBYTES = 0)
+002F 22               49                            RET
+                      50    
+                      51    ; SEND_CMND_BYTES subroutine: write one byte of command(s) to the LCD at a time 
+0030                  52    SEND_CMND_BYTES:
+0030 7900             53                            MOV             BYTE_IDX,       #0                      ; Initialize
+                                                                                byte idx at 0
+0032                  54    SEND_CMND_BYTE:
+0032 E9               55                            MOV             A,      BYTE_IDX                        ; Load A wit
+                                                                               h the value of BYTE_IDX
+0033 113B             56                            ACALL   WRT_CMND                                ; Send command to LC
+                                                                               D
+0035 1157             57                            ACALL   DELAY                                   ; Call DELAY subrout
+                                                                               ine
+0037 09               58                            INC             BYTE_IDX                                ; Increment 
+                                                                               byte idx
+0038 D8F8             59                            DJNZ    NBYTES, SEND_CMND_BYTE  ; Repeat for each byte of command (l
+                                                                               oop until NBYTES = 0)
+003A 22               60                            RET
+                      61                            
+                      62    
+                      63    ; WRT_CMND subroutine: send command to LCD              
+003B                  64    WRT_CMND:       
+003B 93               65                            MOVC    A,      @A+DPTR         ; Address of the desired byte in cod
+                                                                               e space is formed by adding A + DPTR
+003C F5A0             66                            MOV     DATA_PORT,      A       ; Load DATA_PORT with contents of A
+                                                                               
+003E C280             67                            CLR     RS                              ; RS = 0 for command
+0040 C281             68                            CLR     RW                              ; RW = 0 for write
+0042 D282             69                            SETB    EN                              ; EN = 1 for high pulse
+0044 1157             70                            ACALL   DELAY                   ; Call DELAY subroutine
+0046 C282             71                            CLR     EN                              ; EN = 0 for low pulse
+0048 22               72                            RET
+                      73    
+                      74    ; WRT_DATA subroutine: send data to LCD and display
+0049                  75    WRT_DATA:       
+0049 93               76                            MOVC    A,      @A+DPTR         ; Address of the desired byte in cod
+                                                                               e space is formed by adding A + DPTR
+004A F5A0             77                            MOV     DATA_PORT,      A       ; Load DATA_PORT with contents of A
+                                                                               
+004C D280             78                            SETB    RS                              ; RS = 1 for data
+004E C281             79                            CLR     RW                              ; RW = 0 for write
+0050 D282             80                            SETB    EN                              ; EN = 1 for high pulse
+0052 1157             81                            ACALL   DELAY                   ; Call DELAY subroutine
+0054 C282             82                            CLR     EN                              ; EN = 0 for low pulse
+0056 22               83                            RET
+                      84                    
+                      85    ; DELAY subroutine
+0057 7BFF             86    DELAY:          MOV     R3,     #255    ; Load R3 with 255
+0059 7C02             87    L2:             MOV     R4,             #2              ; Load R4 with 2
+MAIN                                                                                                          PAGE 3
+
+005B DCFE             88    L1:             DJNZ    R4,     L1              ; Decrement R4, if not zero repeat L1
+005D DBFA             89                            DJNZ    R3,     L2              ; Decrement R3, if not zero repeat L
+                                                                               1
+005F 22               90                            RET
+                      91                            
+                      92    ; Define commands to initialize LCD display
+                      93    ; 38H: 8-bit, 2 line, 5x7 dots
+                      94    ; 0EH: Display ON cursor, ON
+                      95    ; 06H: Auto increment mode, i.e., when we send char, cursor position moves right
+0060 380E06           96    INIT_CMND:      DB              38H,    0EH,    06H
+                      97            
+                      98    ; Define data to display on lines 1 and 2 of LCD
+0063 48454C4C         99    DATA1:  DB              'HELLO'
+0067 4F         
+0068 574F524C        100    DATA2:  DB              'WORLD'
+006C 44         
+                     101            
+                     102    ; Define commands to go to line 1 of display
+                     103    ; 01H: Clear display
+                     104    ; 80H: Bring cursor to line 1
+006D 0180            105    LINE1:  DB              01H, 80H
+                     106            
+                     107    ; Define command to go to line 2 of display
+                     108    ; 0C0H: Bring cursor to line 2
+006F C0              109    LINE2:  DB              0C0H
+                     110    
+                     111    
+                     112    END
+
+VERSION 1.2k ASSEMBLY COMPLETE, 0 ERRORS FOUND
+MAIN                                                                                                          PAGE 4
+
+BYTE_IDX . . . . . . . . . . . .    REG1         
+DATA1. . . . . . . . . . . . . .  C ADDR  0063H  
+DATA2. . . . . . . . . . . . . .  C ADDR  0068H  
+DATA_PORT. . . . . . . . . . . .    NUMB  00A0H  
+DELAY. . . . . . . . . . . . . .  C ADDR  0057H  
+EN . . . . . . . . . . . . . . .    NUMB  0082H  
+INIT . . . . . . . . . . . . . .  C ADDR  0000H  NOT USED  
+INIT_CMND. . . . . . . . . . . .  C ADDR  0060H  
+L1 . . . . . . . . . . . . . . .  C ADDR  005BH  
+L2 . . . . . . . . . . . . . . .  C ADDR  0059H  
+LINE1. . . . . . . . . . . . . .  C ADDR  006DH  
+LINE2. . . . . . . . . . . . . .  C ADDR  006FH  
+MAIN . . . . . . . . . . . . . .  C ADDR  0007H  
+NBYTES . . . . . . . . . . . . .    REG0         
+P0 . . . . . . . . . . . . . . .  D ADDR  0080H  PREDEFINED  
+P2 . . . . . . . . . . . . . . .  D ADDR  00A0H  PREDEFINED  
+RS . . . . . . . . . . . . . . .    NUMB  0080H  
+RW . . . . . . . . . . . . . . .    NUMB  0081H  
+SEND_CMND_BYTE . . . . . . . . .  C ADDR  0032H  
+SEND_CMND_BYTES. . . . . . . . .  C ADDR  0030H  
+SEND_DATA1 . . . . . . . . . . .  C ADDR  0007H  NOT USED  
+SEND_DATA2 . . . . . . . . . . .  C ADDR  0015H  NOT USED  
+SEND_DATA_BYTE . . . . . . . . .  C ADDR  0027H  
+SEND_DATA_BYTES. . . . . . . . .  C ADDR  0025H  
+WRT_CMND . . . . . . . . . . . .  C ADDR  003BH  
+WRT_DATA . . . . . . . . . . . .  C ADDR  0049H  
